@@ -21,23 +21,13 @@ EnumNode.prototype.insert = function(id, pos, offset) {
         if (this.right) return this.right.insert(id, pos, offset)
 
         return this.right = new EnumNode(id, this, null, null, pos - offset)
-    } else if (pos < offset) {
+    } else {
 
         this.offset++
 
-        if (this.left) return this.left.insert(id, pos, offset)
+        if (this.left) return this.left.insert(id, pos, offset - 1)
 
-        return this.left = new EnumNode(id, this, null, null, pos - offset)
-    } else {
-
-        var node = new EnumNode(id, this.parent, null, this, this.offset)
-
-        if (this.parent) this.parent.replaceChild(this, node)
-
-        this.parent = node
-        this.offset = +1
-
-        return node
+        return this.left = new EnumNode(id, this, null, null, pos - offset - 1)
     }
 }
 
@@ -88,8 +78,6 @@ EnumTree.prototype.insert = function(id, pos) {
 
     if (this.root) this.map[id] = this.root.insert(id, pos, 0)
     else this.root = this.map[id] = new EnumNode(id, null, null, null, pos)
-
-    while (this.root.parent) this.root = this.root.parent
 }
 
 EnumTree.prototype.remove = function(pos) {
