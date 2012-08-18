@@ -1,13 +1,25 @@
 var archy = require('archy')
 
+var RED = "R", BLACK = "B"
+  , LEAF =
+  {
+      color: BLACK,
+      archy: function(){
+          return { label: "\033[34m*\033[0m" }
+      },
+      forEach: function(){},
+      map: function() { return [] }
+  }
+
 // proof of concept in JavaScript
 //
-function EnumNode(id, parent, left, right, offset) {
+function EnumNode(id, parent, offset) {
     this.id = id
     this.parent = parent || null
-    this.left = left || null
-    this.right = right || null
+    this.left = LEAF
+    this.right = LEAF
     this.offset = offset || 0
+    this.color = this.parent ? RED : BLACK
 }
 
 EnumNode.prototype = {}
@@ -18,24 +30,17 @@ EnumNode.prototype.insert = function(id, pos, offset) {
 
     if (pos > offset) {
 
-        if (this.right) return this.right.insert(id, pos, offset)
+        if (this.right != LEAF) return this.right.insert(id, pos, offset)
 
-        return this.right = new EnumNode(id, this, null, null, pos - offset)
+        return this.right = new EnumNode(id, this, pos - offset)
     } else {
 
         this.offset++
 
-        if (this.left) return this.left.insert(id, pos, offset - 1)
+        if (this.left != LEAF) return this.left.insert(id, pos, offset - 1)
 
-        return this.left = new EnumNode(id, this, null, null, pos - offset - 1)
+        return this.left = new EnumNode(id, this, pos - offset - 1)
     }
-}
-
-EnumNode.prototype.replaceChild = function(child, newChild) {
-
-    if (this.left == child) this.left = newChild
-    else if (this.right == child) this.right = newChild
-    else throw "Cannot replace a child I never had"
 }
 
 EnumNode.prototype.pos = function(offset) {
@@ -47,14 +52,12 @@ EnumNode.prototype.pos = function(offset) {
 
 EnumNode.prototype.archy = function() {
 
-    var node = { label: this.id + " " + this.offset }
-
-    if (this.right || this.left) {
-
-        node.nodes = [{ label: "" }, { label: "" }]
-
-        if (this.left) node.nodes[0] = this.left.archy()
-        if (this.right) node.nodes[1] = this.right.archy()
+    var label = "( " + this.id + " @ " + this.offset + " " + this.color + " )"
+    if (this.color == RED) label = "\033[31m" + label + "\033[0m"
+    if (this.color == BLACK) label = "\033[34m" + label + "\033[0m"
+    return {
+        label: label,
+        nodes: [ this.left.archy(), this.right.archy() ]
     }
 
     return node
@@ -77,7 +80,7 @@ EnumTree.prototype.insert = function(id, pos) {
     if (this.map[id]) throw "Cannot insert an element that already exists"
 
     if (this.root) this.map[id] = this.root.insert(id, pos, 0)
-    else this.root = this.map[id] = new EnumNode(id, null, null, null, pos)
+    else this.root = this.map[id] = new EnumNode(id, null, pos)
 }
 
 EnumTree.prototype.remove = function(pos) {
