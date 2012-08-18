@@ -24,33 +24,41 @@ EnumList.prototype.toString = function() {
 }
 
 function EnumTester(ids) {
-    var l = new EnumList(ids)
-      , t = new EnumTree(ids)
+    var l, t
+    l = this.l = new EnumList(ids)
+    t = this.t = new EnumTree(ids)
 
-    this.l = l
-    this.t = t
+    this.timespent = { l: 0, t: 0 }
 
-    this.insert = function(id, pos) {
-        t.insert(id, pos)
-        l.insert(id, pos)
-        this.dump()
+    this.insertAndTest = function(id, pos) {
+        this.insert(id, pos)
         this.test()
     }
 
+    this.insert = function(id, pos) {
+        if (t) t.insert(id, pos)
+        if (l) l.insert(id, pos)
+    }
+
     this.remove = function(pos) {
-        t.remove(pos)
-        l.remove(pos)
+        if (t) t.remove(pos)
+        if (l) l.remove(pos)
         this.test()
     }
 
     this.pos = function(id) {
-        return should.strictEqual(t.pos(id), l.pos(id), "wrong index for " + id + ": expected " + l.pos(id) + ", got " + t.pos(id))
+        if (l && t)
+            return should.strictEqual(t.pos(id), l.pos(id))
+        if (t) return t.pos(id)
+        if (l) return l.pos(id)
     }
 
     this.test = function() {
-        l.ids.forEach(function(id) {
-            this.pos(id)
-        }.bind(this))
+        if (l && t) {
+            l.ids.forEach(function(id) {
+                this.pos(id)
+            }.bind(this))
+        }
     }
 
     this.dump = function() {
@@ -69,30 +77,44 @@ describe('EnumTree', function() {
 
     it('inserts new elements', function() {
 
-        test.insert("1", 3)
-        test.insert("2", 0)
-        test.insert("3", 6)
-        test.insert("5", 0)
-        test.insert("4", 10)
+        test.insertAndTest("1", 3)
+        test.insertAndTest("2", 0)
+        test.insertAndTest("3", 6)
+        test.insertAndTest("5", 0)
+        test.insertAndTest("4", 10)
     })
 
     it('can iterate', function() {
         
-        var ids = []
-        test.t.forEach(function(id) { ids.push(id) })
-        ids.should.eql(test.l.ids)
+        if (test.t && test.l) {
+            var ids = []
+            test.t.forEach(function(id) { ids.push(id) })
+            ids.should.eql(test.l.ids)
+        }
     })
 
     it('can map', function() {
-        test.t.map(function(id) { return id }).should.eql(test.l.ids)
+        if (test.t && test.l) {
+            test.t.map(function(id) { return id }).should.eql(test.l.ids)
+        }
     })
 
     it('passes a fuzz test', function() {
 
-        for (var i = test.l.ids.length; i < 100; i++) {
+        for (var i = 10; i < 1000; i++) {
             var pos = Math.floor(Math.random() * i)
-            console.log("<insert " + i + " at " + pos + ">")
             test.insert(""+i, pos)
         }
+        test.test()
+        test.dump()
     })
 })
+
+describe("Edge cases", function() {
+    var test = new EnumTester(["a"])
+    it("passes the 'off by one' issue" ,function() {
+        test.insert("1", 0)
+        test.insert("2", 1)
+    })
+})
+
