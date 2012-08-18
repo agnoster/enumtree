@@ -72,6 +72,8 @@ describe('EnumTree', function() {
         test.insert("1", 3)
         test.insert("2", 0)
         test.insert("3", 6)
+        test.insert("5", 0)
+        test.insert("4", 10)
     })
 
     it('can iterate', function() {
@@ -83,5 +85,14 @@ describe('EnumTree', function() {
 
     it('can map', function() {
         test.t.map(function(id) { return id }).should.eql(test.l.ids)
+    })
+
+    it('passes a fuzz test', function() {
+
+        for (var i = test.l.ids.length; i < 100; i++) {
+            var pos = Math.floor(Math.random() * i)
+            console.log("<insert " + i + " at " + pos + ">")
+            test.insert(""+i, pos)
+        }
     })
 })
