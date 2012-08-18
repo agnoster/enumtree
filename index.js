@@ -59,14 +59,27 @@ EnumNode.prototype.archy = function() {
         label: label,
         nodes: [ this.left.archy(), this.right.archy() ]
     }
-
-    return node
 }
 
+EnumNode.prototype.forEach = function(cb) {
+    
+    this.left.forEach(cb)
+    cb(this.id)
+    this.right.forEach(cb)
+}
+
+EnumNode.prototype.map = function(cb) {
+
+    var results = []
+    results = results.concat(this.left.map(cb))
+    results.push(cb(this.id))
+    results = results.concat(this.right.map(cb))
+    return results
+}
 
 function EnumTree(ids) {
     this.root = null
-    this.map = {}
+    this.index = {}
 
     for (var i = 0; i < ids.length; i++) {
         this.insert(ids[i], i)
@@ -77,23 +90,33 @@ EnumTree.prototype = {}
 
 EnumTree.prototype.insert = function(id, pos) {
 
-    if (this.map[id]) throw "Cannot insert an element that already exists"
+    if (this.index[id]) throw "Cannot insert an element that already exists"
 
-    if (this.root) this.map[id] = this.root.insert(id, pos, 0)
-    else this.root = this.map[id] = new EnumNode(id, null, pos)
+    if (this.root) this.index[id] = this.root.insert(id, pos, 0)
+    else this.root = this.index[id] = new EnumNode(id, null, pos)
 }
 
 EnumTree.prototype.remove = function(pos) {
 }
 
 EnumTree.prototype.pos = function(id) {
-    if (!this.map[id]) return -1
-    return this.map[id].pos(0)
+    if (!this.index[id]) return -1
+    return this.index[id].pos(0)
 }
 
 EnumTree.prototype.toString = function() {
     if (this.root) return archy(this.root.archy())
     else return '-- empty tree --'
+}
+
+EnumTree.prototype.map = function(cb) {
+
+    if (this.root) return this.root.map(cb)
+}
+
+EnumTree.prototype.forEach = function(cb) {
+
+    if (this.root) this.root.forEach(cb)
 }
 
 module.exports = EnumTree

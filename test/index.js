@@ -27,6 +27,9 @@ function EnumTester(ids) {
     var l = new EnumList(ids)
       , t = new EnumTree(ids)
 
+    this.l = l
+    this.t = t
+
     this.insert = function(id, pos) {
         t.insert(id, pos)
         l.insert(id, pos)
@@ -69,5 +72,16 @@ describe('EnumTree', function() {
         test.insert("1", 3)
         test.insert("2", 0)
         test.insert("3", 6)
+    })
+
+    it('can iterate', function() {
+        
+        var ids = []
+        test.t.forEach(function(id) { ids.push(id) })
+        ids.should.eql(test.l.ids)
+    })
+
+    it('can map', function() {
+        test.t.map(function(id) { return id }).should.eql(test.l.ids)
     })
 })
