@@ -24,22 +24,31 @@ function EnumNode(id, parent, offset) {
 
 EnumNode.prototype = {}
 
-EnumNode.prototype.insert = function(id, pos, offset) {
+EnumNode.prototype.insert = function(id, pos, offset, dir) {
 
     offset += this.offset
+    dir = (dir || 1)
 
     if (pos > offset) {
 
-        if (this.right != LEAF) return this.right.insert(id, pos, offset)
+        if (dir < 0) {
+            this.offset--
+            offset--
+        }
+
+        if (this.right != LEAF) return this.right.insert(id, pos, offset, 1)
 
         return this.right = new EnumNode(id, this, pos - offset)
     } else {
 
-        this.offset++
+        if (dir > 0) {
+            this.offset++
+            offset++
+        }
 
-        if (this.left != LEAF) return this.left.insert(id, pos, offset - 1)
+        if (this.left != LEAF) return this.left.insert(id, pos, offset, -1)
 
-        return this.left = new EnumNode(id, this, pos - offset - 1)
+        return this.left = new EnumNode(id, this, pos - offset)
     }
 }
 
